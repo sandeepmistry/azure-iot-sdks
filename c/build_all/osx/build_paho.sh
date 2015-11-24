@@ -67,7 +67,7 @@ sync_paho ()
         exit 1
     fi
 
-    rm $build_root -r -f
+    rm  -r -f $build_root
     mkdir $build_root
     git clone $paho_repo $build_root
 }
@@ -75,7 +75,7 @@ sync_paho ()
 build ()
 {
     push_dir $build_root
-    make install
+    CFLAGS=-I/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-migrator/sdk/MacOSX.sdk/usr/include make
     pop_dir
 }
 

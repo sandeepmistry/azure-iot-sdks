@@ -68,7 +68,7 @@ sync_proton ()
         exit 1
     fi
 
-    rm $build_root -r -f
+    rm -r -f $build_root
     cd /tmp
     curl -L $proton_repo/archive/$proton_branch.zip -o proton.zip
     mkdir proton
@@ -89,7 +89,6 @@ build ()
 
     cmake .. -DCMAKE_INSTALL_PREFIX="$install_root" -DSYSINSTALL_BINDINGS=ON
     make
-    make install
 
     pop_dir
 }
