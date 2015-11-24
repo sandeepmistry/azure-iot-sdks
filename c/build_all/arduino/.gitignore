@@ -1,0 +1,3 @@
+AzureIoT/src/sdk/*.h
+AzureIoT/src/sdk/*.c
+
