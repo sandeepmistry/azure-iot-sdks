@@ -467,20 +467,16 @@ public:
 
         MOCK_STATIC_METHOD_3(, IOTHUB_MESSAGE_RESULT, IoTHubMessage_GetByteArray, IOTHUB_MESSAGE_HANDLE, iotHubMessageHandle, const unsigned char**, buffer, size_t*, size)
     {
-        switch ((uintptr_t)iotHubMessageHandle)
-        {
-        case ((uintptr_t)TEST_IOTHUB_MESSAGE_HANDLE_1) :
+        if ((uintptr_t)iotHubMessageHandle == (uintptr_t)TEST_IOTHUB_MESSAGE_HANDLE_1)
         {
             *buffer = buffer1;
             *size = buffer1_size;
-            break;
         }
-        default:
+        else
         {
             /*not expected really*/
             *buffer = (const unsigned char*)"333";
             *size = 3;
-        }
         }
 
     }

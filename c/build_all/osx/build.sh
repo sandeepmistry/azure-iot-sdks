@@ -61,6 +61,6 @@ rm -r -f ~/cmake
 mkdir ~/cmake
 pushd ~/cmake
 cmake -DcompileOption_C:STRING="$extracloptions" -Drun_e2e_tests:BOOL=$run_e2e_tests -Drun_longhaul_tests=$run_longhaul_tests -Duse_amqp:BOOL=$build_amqp -Duse_http:BOOL=$build_http -Duse_mqtt:BOOL=$build_mqtt $build_root
-make --jobs=$(nproc)
+CFLAGS="-I$HOME/qpid-proton/proton-c/include/" make
 ctest -C "Debug" -V
 popd

@@ -97,6 +97,8 @@ extern int size_tToString(char* destination, size_t destinationSize, size_t valu
 #define signbit(x) __builtin_signbit(x)
 #endif 
 
+#include <math.h>
+
 #ifdef _MSC_VER
 #define ISNAN _isnan
 #else
@@ -110,7 +112,7 @@ extern int size_tToString(char* destination, size_t destinationSize, size_t valu
 #else
 #ifdef __cplusplus
 /*C++ defines isnan... in C11*/
-#define ISNAN std::isnan
+#define ISNAN isnan
 #else
 #error unknown (or C89) compiler, provide ISNAN with the same meaning as isnan in C99 standard  
 #endif
@@ -132,7 +134,7 @@ extern int size_tToString(char* destination, size_t destinationSize, size_t valu
 #endif
 #else
 #ifdef __cplusplus 
-#define ISPOSITIVEINFINITY(x) (std::isinf((x)) && (signbit((x))==0))
+#define ISPOSITIVEINFINITY(x) (isinf((x)) && (signbit((x))==0))
 #else
 #error unknown (or C89) compiler, must provide a definition for ISPOSITIVEINFINITY
 #endif
@@ -152,7 +154,7 @@ extern int size_tToString(char* destination, size_t destinationSize, size_t valu
 #endif
 #else
 #ifdef __cplusplus 
-#define ISNEGATIVEINFINITY(x) (std::isinf((x)) && (signbit((x)) != 0))
+#define ISNEGATIVEINFINITY(x) (isinf((x)) && (signbit((x)) != 0))
 #else
 #error unknown (or C89) compiler, must provide a definition for ISNEGATIVEINFINITY
 #endif

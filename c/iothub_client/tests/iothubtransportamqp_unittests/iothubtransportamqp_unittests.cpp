@@ -661,33 +661,27 @@ public:
     MOCK_METHOD_END(MAP_RESULT, MAP_OK)
 
     MOCK_STATIC_METHOD_4(, MAP_RESULT, Map_GetInternals, MAP_HANDLE, handle, const char*const**, keys, const char*const**, values, size_t*, count)
-        switch ((uintptr_t)handle)
+        if ((uintptr_t)handle == (uintptr_t)TEST_MAP_EMPTY)
         {
-            case ((uintptr_t)TEST_MAP_EMPTY):
-            {
-                *keys = NULL;
-                *values = NULL;
-                *count = 0;
-                break;
-            }
-            case ((uintptr_t)TEST_MAP_1_PROPERTY):
-            {
-                *keys = (const char*const*)TEST_KEYS1;
-                *values = (const char*const*)TEST_VALUES1;
-                *count = sizeof(TEST_VALUES1)/sizeof(TEST_VALUES1);
-                break;
-            }
-            case ((uintptr_t)TEST_MAP_2_PROPERTY):
-            {
-                *keys = (const char*const*)TEST_KEYS2;
-                *values = (const char*const*)TEST_VALUES2;
-                *count = sizeof(TEST_VALUES2)/sizeof(TEST_VALUES2);
-                break;
-            }
-            default:
-            {
-                ASSERT_FAIL("unexpected value");
-            }
+            *keys = NULL;
+            *values = NULL;
+            *count = 0;
+        }
+        else if ((uintptr_t)handle == (uintptr_t)TEST_MAP_1_PROPERTY)
+        {
+            *keys = (const char*const*)TEST_KEYS1;
+            *values = (const char*const*)TEST_VALUES1;
+            *count = sizeof(TEST_VALUES1)/sizeof(TEST_VALUES1);
+        }
+        else if ((uintptr_t)handle == (uintptr_t)TEST_MAP_2_PROPERTY)
+        {
+            *keys = (const char*const*)TEST_KEYS2;
+            *values = (const char*const*)TEST_VALUES2;
+            *count = sizeof(TEST_VALUES2)/sizeof(TEST_VALUES2);
+        }
+        else
+        {
+            ASSERT_FAIL("unexpected value");
         }
     MOCK_METHOD_END(MAP_RESULT, MAP_OK);
 
