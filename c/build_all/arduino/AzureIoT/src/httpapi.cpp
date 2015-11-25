@@ -173,6 +173,8 @@ HTTPAPI_RESULT HTTPAPI_SetOption(HTTP_HANDLE handle, const char* optionName,
 
     if (strcmp("timeout", optionName) == 0) {
         client->setTimeout(*(const unsigned int*)value);
+
+        result = HTTPAPI_OK;
     }
 
     return result;
