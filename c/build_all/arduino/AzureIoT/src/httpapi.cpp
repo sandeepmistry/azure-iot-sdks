@@ -2,7 +2,7 @@
 
 #include "sdk/httpapi.h"
 
-#define HTTP_API_DEBUG
+// #define HTTP_API_DEBUG
 
 #ifdef HTTP_API_DEBUG
     #define Debug_print(x) Serial.print(x)
