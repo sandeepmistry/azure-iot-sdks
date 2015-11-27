@@ -3,28 +3,23 @@
 #define LOCAL_UDP_PORT 2390
 
 NTPClient::NTPClient() :
-    _host(NULL),
-    _port(-1),
     _udp()
 {
 }
 
-int NTPClient::begin(const char* host, int port)
+int NTPClient::begin()
 {
-    _host = host;
-    _port = port;
-
     return _udp.begin(LOCAL_UDP_PORT);
 }
 
-uint32_t NTPClient::getEpochTime(int timeout)
+uint32_t NTPClient::getEpochTime(const char* host, int port, int timeout)
 {
-    if (_host == NULL || _port < 1) {
+    if (host == NULL || port < 1) {
         return (uint32_t)-1;
     }
 
     prepareRequest();
-    sendRequest();
+    sendRequest(host, port);
 
     if (!receiveResponse(timeout)) {
         return (uint32_t)-1;
@@ -56,9 +51,9 @@ void NTPClient::prepareRequest()
     _buffer[15] = 52;
 }
 
-void NTPClient::sendRequest()
+void NTPClient::sendRequest(const char* host, int port)
 {
-    _udp.beginPacket(_host, _port);
+    _udp.beginPacket(host, port);
     _udp.write(_buffer, NTP_PACKET_SIZE);
     _udp.endPacket();
 }

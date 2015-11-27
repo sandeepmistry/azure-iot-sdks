@@ -8,7 +8,7 @@ time_t get_time(time_t* currentTime)
     uint32_t epochTime;
 
     ntpClient.begin();
-    epochTime = ntpClient.getEpochTime();
+    epochTime = ntpClient.getEpochTime("time.nist.gov");
     ntpClient.end();
 
     if (currentTime) {

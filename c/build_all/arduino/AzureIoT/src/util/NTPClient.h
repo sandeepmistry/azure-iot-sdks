@@ -13,19 +13,16 @@ class NTPClient
 {
     public:
         NTPClient();
-        int begin(const char* host = "time.nist.gov", int port = NTP_PORT);
-        uint32_t getEpochTime(int timeout = DEFAULT_NTP_TIMEOUT);
+        int begin();
+        uint32_t getEpochTime(const char* host, int port = NTP_PORT, int timeout = DEFAULT_NTP_TIMEOUT);
         void end();
 
     private:
         void prepareRequest();
-        void sendRequest();
+        void sendRequest(const char* host, int port);
         int receiveResponse(int timeout);
         uint32_t parseResponse();
 
-
-        const char* _host;
-        int         _port;
         char        _buffer[NTP_PACKET_SIZE];
         WiFiUDP     _udp;
 };
