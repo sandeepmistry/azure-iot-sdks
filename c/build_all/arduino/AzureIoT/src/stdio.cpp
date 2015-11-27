@@ -16,10 +16,8 @@ extern "C" {
         }
 
         size_t nChars = 0;
-        for (; bufSize>0; --bufSize) {
+        for (; bufSize > 0; --bufSize, ++buf, ++nChars) {
             Serial.write(*buf);
-            ++buf;
-            ++nChars;
         }
         return nChars;
     }
