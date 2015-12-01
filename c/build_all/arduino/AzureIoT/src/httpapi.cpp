@@ -1,46 +1,45 @@
-#include <WiFi101.h>
-
 #include "sdk/httpapi.h"
+#include "sdk/iot_logging.h"
 
-// #define HTTP_API_DEBUG
+#include "util/HTTPSClient.h"
 
-#ifdef HTTP_API_DEBUG
-    #define Debug_print(x) Serial.print(x)
-    #define Debug_println(x) Serial.println(x)
-    #define Debug_write(x, y) Serial.write(x, y)
-#else
-    #define Debug_print(x)
-    #define Debug_println(x)
-    #define Debug_write(x, y)
-#endif
+#define POOL_SIZE 1
 
-WiFiSSLClient sslClient;
+HTTPSClient httpsClients[POOL_SIZE];
 
 HTTPAPI_RESULT HTTPAPI_Init(void)
 {
-    Debug_println(F("HTTPAPI_Init"));
-
-    return (HTTPAPI_OK);
+    for (int i = 0; i < POOL_SIZE; i++) {
+        httpsClients[i] = HTTPSClient();
+    }
+    return HTTPAPI_OK;
 }
 
 void HTTPAPI_Deinit(void)
 {
-    Debug_println(F("HTTPAPI_Deinit"));
 }
 
 HTTP_HANDLE HTTPAPI_CreateConnection(const char* hostName)
 {
-    Debug_print(F("HTTPAPI_CreateConnection: "));
-    Debug_println(hostName);
+    HTTPSClient* client = NULL;
 
-    WiFiSSLClient* client = &sslClient;
+    // find an available client to use
+    for (int i = 0; i < POOL_SIZE; i++) {
+        if (!httpsClients[i].connected()) {
+            client = &httpsClients[i];
+            break;
+        }
+    }
 
-    if (client->connected()) {
-        Debug_println(F("Client already connected!"));
-        client = NULL;
-    } else if (!client->connect(hostName, 443)) {
-        Debug_println(F("Client connect failed!"));
-        client = NULL;
+    if (client) {
+        if (!client->begin(hostName)) {
+            // connection failed
+            LogError("HTTPS connection to %s failed\n", hostName);
+            client = NULL;
+        }
+    } else {
+        // no clients available
+        LogError("No HTTPS clients available\n");
     }
 
     return ((HTTP_HANDLE)client);
@@ -48,11 +47,9 @@ HTTP_HANDLE HTTPAPI_CreateConnection(const char* hostName)
 
 void HTTPAPI_CloseConnection(HTTP_HANDLE handle)
 {
-    Debug_println(F("HTTPAPI_CloseConnection"));
+    HTTPSClient* client = (HTTPSClient*)handle;
 
-    WiFiSSLClient* client = (WiFiSSLClient*)handle;
-
-    client->stop();
+    client->end();
 }
 
 static const char* HTTPRequestTypes[] = {
@@ -70,105 +67,75 @@ HTTPAPI_RESULT HTTPAPI_ExecuteRequest(HTTP_HANDLE handle,
         HTTP_HEADERS_HANDLE responseHeadersHandle,
         BUFFER_HANDLE responseContent)
 {
-    Debug_print("HTTPAPI_ExecuteRequest: ");
-    Debug_print(HTTPRequestTypes[requestType]);
-    Debug_print(F(" "));
-    Debug_print(relativePath);
-    Debug_print(F(" "));
-    Debug_println(F("HTTP/1.1"));
-
-    WiFiSSLClient* client = (WiFiSSLClient*)handle;
-
-    if (!client->connected()) {
-        Debug_println(F("Client not connected!"));
-        return HTTPAPI_ERROR;
-    }
-
-    // request line
-    client->print(HTTPRequestTypes[requestType]);
-    client->print(F(" "));
-    client->print(relativePath);
-    client->print(F(" "));
-    client->println(F("HTTP/1.1"));
-
-    // headers
+    int result;
     size_t headersCount;
     char* header;
 
+    HTTPSClient* client = (HTTPSClient*)handle;
+
+    if (!client->connected()) {
+        // client not connected
+        LogError("HTTPS request failed, client not connected\n");
+        return HTTPAPI_OPEN_REQUEST_FAILED;
+    }
+
+    result = client->sendRequest(HTTPRequestTypes[requestType], relativePath);
+    if (!result) {
+        LogError("HTTPS send request failed\n");
+        return HTTPAPI_SEND_REQUEST_FAILED;
+    }
+
     HTTPHeaders_GetHeaderCount(httpHeadersHandle, &headersCount);
 
-    for (size_t i = 0; i < headersCount; i++) {
+    for (size_t i = 0; i < headersCount && result; i++) {
         HTTPHeaders_GetHeader(httpHeadersHandle, i, &header);
-
-        Debug_println(header);
-        client->println(header);
-
+        result = client->sendHeader(header);
         free(header);
     }
 
-    // empty line
-    Debug_println();
-    client->println();
-
-    // body;
-    if (contentLength) {
-        client->write(content, contentLength);
+    if (!result) {
+        LogError("HTTPS send header failed\n");
+        return HTTPAPI_SEND_REQUEST_FAILED;
     }
 
-    // status
-    String status = client->readStringUntil('\n');
-    status.trim();
-    Debug_println(status);
+    result = client->sendBody(content, contentLength);
+    if (!result) {
+        LogError("HTTPS send body failed\n");
+        return HTTPAPI_SEND_REQUEST_FAILED;
+    }
 
-    *statusCode = status.substring(status.indexOf(' ') + 1, status.lastIndexOf(' ')).toInt();
+    result = client->readStatus();
+    if (result == -1) {
+        return HTTPAPI_STRING_PROCESSING_ERROR;
+    }
+    *statusCode = result;
 
-    // headers
-    String responseLine;
-    contentLength = 0;
-    while(true) {
-        responseLine = client->readStringUntil('\n');
-        responseLine.trim();
+    while (result > 0) {
+        String headerName;
+        String headerValue;
 
-        Debug_println(responseLine);
-
-        if (responseLine.length() == 0) {
-            break;
-        }
-
-        int colonIndex = responseLine.indexOf(':');
-        String headerName = responseLine.substring(0, colonIndex);
-        String headerValue = responseLine.substring(colonIndex + 1);
-
-        headerName.trim();
-        headerValue.trim();
-
+        result = client->readHeader(headerName, headerValue);
         HTTPHeaders_AddHeaderNameValuePair(responseHeadersHandle, headerName.c_str(), headerValue.c_str());
-
-        if (headerName.equals("Content-Length")) {
-            contentLength = headerValue.toInt();
-        }
     }
 
+    if (result == -1) {
+        LogError("HTTPS header parsing failed\n");
+        return HTTPAPI_HTTP_HEADERS_FAILED;
+    }
 
+    contentLength = client->contentLength();
     if (contentLength) {
         BUFFER_pre_build(responseContent, contentLength);
-        client->readBytes(BUFFER_u_char(responseContent), contentLength);
-
-        Debug_write(BUFFER_u_char(responseContent), contentLength);
-        Debug_println();
-        Debug_println();
+        client->readBody(BUFFER_u_char(responseContent), contentLength);
     }
 
-    return (HTTPAPI_OK);
+    return HTTPAPI_OK;
 }
 
 HTTPAPI_RESULT HTTPAPI_SetOption(HTTP_HANDLE handle, const char* optionName,
         const void* value)
 {
-    Debug_print(F("HTTPAPI_SetOption: "));
-    Debug_println(optionName);
-
-    WiFiSSLClient* client = (WiFiSSLClient*)handle;
+    HTTPSClient* client = (HTTPSClient*)handle;
     HTTPAPI_RESULT result = HTTPAPI_INVALID_ARG;
 
     if (strcmp("timeout", optionName) == 0) {
@@ -183,9 +150,6 @@ HTTPAPI_RESULT HTTPAPI_SetOption(HTTP_HANDLE handle, const char* optionName,
 HTTPAPI_RESULT HTTPAPI_CloneOption(const char* optionName, const void* value,
         const void** savedValue)
 {
-    Debug_print(F("HTTPAPI_CloneOption: "));
-    Debug_println(optionName);
-
     HTTPAPI_RESULT result = HTTPAPI_INVALID_ARG;
 
     if (strcmp("timeout", optionName) == 0) {
