@@ -1,8 +1,10 @@
+AzureIoT/.development
+
 AzureIoT/src/sdk/*.h
 AzureIoT/src/sdk/*.c
 
-examples/iothub_client/iothub_client_sample_http/*.h
-examples/iothub_client/iothub_client_sample_http/*.c
+AzureIoT/examples/iothub_client/iothub_client_sample_http/*.h
+AzureIoT/examples/iothub_client/iothub_client_sample_http/*.c
 
-examples/serializer/simplesample_http/*.h
-examples/serializer/simplesample_http/*.c
+AzureIoT/examples/serializer/simplesample_http/*.h
+AzureIoT/examples/serializer/simplesample_http/*.c
