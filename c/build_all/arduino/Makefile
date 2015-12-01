@@ -1,10 +1,12 @@
-ROOT_C_DIR            = ../..
-COMMON_DIR            = $(ROOT_C_DIR)/common
-COMMON_SRC_DIR        = $(COMMON_DIR)/src
-SERIALIZER_DIR        = $(ROOT_C_DIR)/serializer
-SERIALIZER_SRC_DIR    = $(SERIALIZER_DIR)/src
-IOTHUB_CLIENT_DIR     = $(ROOT_C_DIR)/iothub_client
-IOTHUB_CLIENT_SRC_DIR = $(IOTHUB_CLIENT_DIR)/src
+ROOT_C_DIR                = ../..
+COMMON_DIR                = $(ROOT_C_DIR)/common
+COMMON_SRC_DIR            = $(COMMON_DIR)/src
+SERIALIZER_DIR            = $(ROOT_C_DIR)/serializer
+SERIALIZER_SRC_DIR        = $(SERIALIZER_DIR)/src
+SERIALIZER_SAMPLES_DIR    = $(SERIALIZER_DIR)/samples
+IOTHUB_CLIENT_DIR         = $(ROOT_C_DIR)/iothub_client
+IOTHUB_CLIENT_SRC_DIR     = $(IOTHUB_CLIENT_DIR)/src
+IOTHUB_CLIENT_SAMPLES_DIR = $(IOTHUB_CLIENT_DIR)/samples
 
 COMMON_SRC = \
 	$(COMMON_SRC_DIR)/base64.c \
@@ -62,8 +64,9 @@ LIB_HEADERS = \
 	$(IOTHUB_CLIENT_DIR)/inc/*.h \
 
 LIB_DIR          = AzureIoT
-LIB_SRC_DIR     = ${LIB_DIR}/src
-LIB_SRC_SDK_DIR = ${LIB_SRC_DIR}/sdk
+LIB_SRC_DIR      = ${LIB_DIR}/src
+LIB_EXAMPLES_DIR = ${LIB_DIR}/examples
+LIB_SRC_SDK_DIR  = ${LIB_SRC_DIR}/sdk
 
 default_target: all
 
@@ -71,7 +74,14 @@ sdk: $(LIB_SRC) $(LIB_HEADERS)
 	cp $(LIB_SRC) $(LIB_SRC_SDK_DIR)
 	cp $(LIB_HEADERS) $(LIB_SRC_SDK_DIR)
 
+examples:
+	cp $(SERIALIZER_SAMPLES_DIR)/simplesample_http/simplesample_http.h $(LIB_EXAMPLES_DIR)/serializer/simplesample_http/.
+	cp $(SERIALIZER_SAMPLES_DIR)/simplesample_http/simplesample_http.c $(LIB_EXAMPLES_DIR)/serializer/simplesample_http/.
+	cp $(IOTHUB_CLIENT_SAMPLES_DIR)/iothub_client_sample_http/iothub_client_sample_http.h $(LIB_EXAMPLES_DIR)/iothub_client/iothub_client_sample_http/.
+	cp $(IOTHUB_CLIENT_SAMPLES_DIR)/iothub_client_sample_http/iothub_client_sample_http.c $(LIB_EXAMPLES_DIR)/iothub_client/iothub_client_sample_http/.
+
+
 $(LIBAZUREIOT): $(COMMON_OBJ) $(SERIALIZER_OBJ) $(IOTHUB_CLIENT_OBJ)
 	$(AR) rcs $@ $^
 
-all: sdk
+all: sdk examples
