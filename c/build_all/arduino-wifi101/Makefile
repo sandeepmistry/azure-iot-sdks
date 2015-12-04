@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft. All rights reserved.
+# Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 ROOT_C_DIR                = ../..
 COMMON_DIR                = $(ROOT_C_DIR)/common
 COMMON_SRC_DIR            = $(COMMON_DIR)/src
