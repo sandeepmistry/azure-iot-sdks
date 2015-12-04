@@ -1,5 +1,7 @@
 AzureIoT/.development
 
+AzureIoT/sdk.txt
+
 AzureIoT/src/sdk/*.h
 AzureIoT/src/sdk/*.c
 

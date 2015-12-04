@@ -73,6 +73,9 @@ LIB_SRC_SDK_DIR  = ${LIB_SRC_DIR}/sdk
 
 default_target: all
 
+commit:
+	git rev-parse HEAD > $(LIB_DIR)/sdk.txt
+
 sdk: $(LIB_SRC) $(LIB_HEADERS)
 	cp $(LIB_SRC) $(LIB_SRC_SDK_DIR)
 	cp $(LIB_HEADERS) $(LIB_SRC_SDK_DIR)
@@ -83,8 +86,9 @@ examples:
 	cp $(IOTHUB_CLIENT_SAMPLES_DIR)/iothub_client_sample_http/iothub_client_sample_http.h $(LIB_EXAMPLES_DIR)/iothub_client/iothub_client_sample_http/.
 	cp $(IOTHUB_CLIENT_SAMPLES_DIR)/iothub_client_sample_http/iothub_client_sample_http.c $(LIB_EXAMPLES_DIR)/iothub_client/iothub_client_sample_http/.
 
+clean:
+	rm $(LIB_SRC_SDK_DIR)/*
 
-$(LIBAZUREIOT): $(COMMON_OBJ) $(SERIALIZER_OBJ) $(IOTHUB_CLIENT_OBJ)
-	$(AR) rcs $@ $^
+all: commit sdk examples
 
-all: sdk examples
+.PHONY: commit sdk examples clean
