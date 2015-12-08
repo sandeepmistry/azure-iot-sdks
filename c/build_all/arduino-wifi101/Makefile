@@ -4,6 +4,7 @@
 ROOT_C_DIR                = ../..
 COMMON_DIR                = $(ROOT_C_DIR)/common
 COMMON_SRC_DIR            = $(COMMON_DIR)/src
+COMMON_ADAPTERS_DIR       = $(COMMON_DIR)/adapters
 SERIALIZER_DIR            = $(ROOT_C_DIR)/serializer
 SERIALIZER_SRC_DIR        = $(SERIALIZER_DIR)/src
 SERIALIZER_SAMPLES_DIR    = $(SERIALIZER_DIR)/samples
@@ -12,6 +13,7 @@ IOTHUB_CLIENT_SRC_DIR     = $(IOTHUB_CLIENT_DIR)/src
 IOTHUB_CLIENT_SAMPLES_DIR = $(IOTHUB_CLIENT_DIR)/samples
 
 COMMON_SRC = \
+	$(COMMON_ADAPTERS_DIR)/agenttime.c \
 	$(COMMON_SRC_DIR)/base64.c \
 	$(COMMON_SRC_DIR)/buffer.c \
 	$(COMMON_SRC_DIR)/certs.c \
